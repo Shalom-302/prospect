@@ -1,90 +1,16 @@
 """Données initiales des deux profils.
 
 Source de vérité :
-- Profil A : CV « Shalom_Tehe_FR.pdf » (novembre 2026). Rien n'est ajouté au-delà du CV.
+- Profil A : CV de novembre 2026, rôle de fondateur (CEPICI), produits et stacks vérifiés dans les dépôts de code.
 - Profil B : certificat CEPICI, pack institutionnel KORTEX et cahier des charges.
 Tout est modifiable depuis l'écran Paramètres > Profils.
 """
 
-SHALOM = {
-    "full_name": "Shalom Tehe",
-    "headline": "Ingénieur Logiciel Backend & IA · Spécialiste FastAPI · Mainteneur Open Source",
-    "headline_en": "Backend & AI Software Engineer · FastAPI Specialist · Open Source Maintainer",
-    "location": "Abidjan, Côte d'Ivoire",
-    "availability": "Ouvert aux opportunités à distance et internationales",
-    "contact": {
-        "email": "shalomtehe219@gmail.com",
-        "phone": "+225 07 12 11 62 58",
-        "website": "https://shalom.kortexai.dev",
-        "github": "https://github.com/Shalom-302",
-        "linkedin": "https://linkedin.com/in/shalomt",
-    },
-    "summary": (
-        "Ingénieur logiciel backend et IA, spécialisé dans la conception de systèmes backend prêts pour la production, "
-        "d'applications dopées à l'IA et d'outils pour développeurs. Créateur et mainteneur de Shaapi, framework FastAPI "
-        "open source publié sur PyPI, et auteur d'un guide technique sur l'ingénierie de frameworks. Plus de 3 ans "
-        "d'expérience avec Python, FastAPI et PostgreSQL, et dans la mise en production de systèmes à base de LLM : "
-        "pipelines RAG, agents IA et intégrations MCP."
-    ),
-    "target_roles": [
-        "Backend Software Engineer", "Python / FastAPI Developer", "AI Engineer / Generative AI Engineer",
-        "LLM Engineer", "AI Agents Developer", "Software Engineer", "Freelance Backend Developer",
-        "Technical Lead", "Consultant en intelligence artificielle",
-    ],
-    "contract_types": ["CDI", "CDD", "Remote international", "Freelance", "Consulting", "Contract", "Mission ponctuelle", "Sous-traitance"],
-    "skills": {
-        "Ingénierie backend": ["Python", "FastAPI", "API REST", "Architectures asynchrones", "Architecture logicielle", "Clean Architecture", "SQLAlchemy", "Alembic"],
-        "Intelligence artificielle": ["IA générative", "Applications LLM", "RAG", "Agents IA", "MCP", "LangChain", "Prompt Engineering", "NLP & extraction intelligente de données"],
-        "Bases de données": ["PostgreSQL", "Redis", "Qdrant", "Bases de données vectorielles"],
-        "DevOps": ["Docker", "Linux", "Git", "CI/CD", "Déploiement sur VPS"],
-        "Open Source": ["PyPI", "Publication de paquets", "Documentation", "Développement CLI"],
-        "Frontend": ["React.js"],
-    },
-    "experiences": [
-        {"title": "Développeur IA Générative", "company": "Kaanari", "period": "Sept. 2023 – aujourd'hui", "location": "Abidjan",
-         "highlights": [
-             "Conçoit et livre des services backend pour des produits pilotés par l'IA avec FastAPI, Python asynchrone et PostgreSQL, de l'architecture au déploiement conteneurisé (Docker / VPS).",
-             "Construit et orchestre des agents IA et des pipelines LLM (LangChain) pour l'automatisation, le NLP et l'extraction intelligente de données dans des produits web en production.",
-             "Intègre des capacités d'IA générative dans des produits clients, en transformant des cas d'usage IA ambigus en systèmes fiables, sécurisés et de niveau production.",
-             "Collabore avec des équipes produit, data et ingénierie sur l'architecture et la livraison.",
-         ]},
-        {"title": "Lead Developer", "company": "IT Foundation Côte d'Ivoire", "period": "2026 – aujourd'hui", "location": "Abidjan",
-         "highlights": [
-             "Leadership technique : décisions d'architecture, choix technologiques et planification des livraisons.",
-             "Bonnes pratiques : revue de code, workflows Git, clean architecture, standards de déploiement conteneurisé.",
-             "Encadre les développeurs et traduit les besoins métier en feuilles de route techniques.",
-         ]},
-        {"title": "Professeur / Formateur technique", "company": "GEIGE (Grande École Informatique de Gestion Entreprise)", "period": "2026 – aujourd'hui", "location": "Abidjan",
-         "highlights": [
-             "Enseigne le génie logiciel, le développement backend et Python.",
-             "Conçoit des cursus pratiques orientés projets.",
-         ]},
-        {"title": "Administrateur Réseaux & Sécurité (programme de formation)", "company": "Lemon Africa", "period": "Janv. 2022 – mai 2023", "location": "Abidjan",
-         "highlights": ["Sensibilisations à la cybersécurité et appui à la mise en œuvre de protocoles de sécurité et d'opérations réseau."]},
-        {"title": "Bénévole, appui aux compétences numériques", "company": "American Space", "period": "Août 2021 – janv. 2022", "location": "Abidjan",
-         "highlights": ["Support technique et accompagnement des usagers sur les outils numériques."]},
-    ],
-    "projects": [
-        {"name": "Shaapi", "role": "Créateur & mainteneur", "description": "Framework de scaffolding FastAPI open source prêt pour la production, distribué via PyPI, avec CLI complète ; PostgreSQL, Redis, MinIO, JWT, RBAC et déploiement Docker intégrés.", "key": True},
-        {"name": "Build Your Own Shaapi", "role": "Auteur", "description": "Guide technique sur la conception, la sécurisation, le packaging et la distribution d'un framework FastAPI de niveau production."},
-        {"name": "Plateforme Sevoil Industry", "role": "Lead Backend Engineer", "description": "Plateforme métier de vente et de gestion de produits pétroliers : architecture backend, conception des API, gestion des données, approche security-first."},
-        {"name": "ShaAI", "role": "Fondateur", "description": "Initiative d'IA appliquée : architectures agentiques, RAG, intégrations MCP et automatisation."},
-        {"name": "TRAAF", "role": "Backend", "description": "Gestion du transport urbain : backend FastAPI sécurisé, PostgreSQL, Docker sur VPS."},
-        {"name": "Takawake", "role": "Backend / IA", "description": "Scraping intelligent dopé à l'IA : orchestration d'agents LangChain, extraction et structuration de données, services FastAPI."},
-        {"name": "Teleco Health", "role": "Backend / IA", "description": "Plateforme e-santé à base d'IA générative : FastAPI + PostgreSQL, sécurité des données."},
-    ],
-    "education": [
-        {"degree": "Licence en Programmation Web", "school": "ESMA, Riviera, Abidjan", "date": "Juillet 2022"},
-        {"degree": "BTS (HND) Réseaux Informatiques", "school": "IFSM, Cocody, Abidjan", "date": "Septembre 2021"},
-    ],
-    "languages": [{"language": "Français", "level": "Courant (langue maternelle)"}, {"language": "Anglais", "level": "Professionnel"}],
-    "signature": "Shalom Tehe\nIngénieur Logiciel Backend & IA\n+225 07 12 11 62 58 · shalomtehe219@gmail.com\nhttps://shalom.kortexai.dev · github.com/Shalom-302",
-    "signature_en": "Shalom Tehe\nBackend & AI Software Engineer\n+225 07 12 11 62 58 · shalomtehe219@gmail.com\nhttps://shalom.kortexai.dev · github.com/Shalom-302",
-    "rules": [
-        "Ne jamais inventer de diplôme, d'expérience, de certification ou de compétence absente de ce profil.",
-        "Ne pas citer de chiffres (utilisateurs, gains, revenus) qui ne figurent pas dans le profil.",
-    ],
-}
+import json
+from pathlib import Path
+
+# Profil A : maintenu dans profile_shalom.json (CV de novembre 2026 + rôle de CEO + produits, stacks vérifiées dans le code).
+SHALOM = json.loads((Path(__file__).with_name("profile_shalom.json")).read_text(encoding="utf-8"))
 
 KORTEX = {
     "legal_name": "KORTEX DIGITAL",
