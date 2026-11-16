@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import useSWR from "swr";
-import { Download, Trash2, Upload } from "lucide-react";
+import { Download, FileUp, Trash2, Upload } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,11 +16,27 @@ export default function DocumentsPage() {
   const { data: cats } = useSWR<Record<string, string>>("/api/documents/categories", fetcher);
   const [f, setF] = useState({ category: "cv_fr", language: "fr", profile_key: "shalom", title: "" });
   const fileRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [drag, setDrag] = useState(false);
   const { busy, run } = useAction();
 
+  // Devine catégorie, langue et profil à partir du nom du fichier (modifiable ensuite).
+  function pick(fl: File | null | undefined) {
+    if (!fl) return;
+    setFile(fl);
+    const n = fl.name.toLowerCase();
+    const en = /(^|[_\-. ])(en|eng|english)([_\-. ]|$)/.test(n);
+    let category = f.category, profile_key = f.profile_key;
+    if (/cv|resume/.test(n)) { category = en ? "cv_en" : "cv_fr"; profile_key = "shalom"; }
+    else if (/plaquette|capability|brochure/.test(n)) { category = "plaquette"; profile_key = "kortex"; }
+    else if (/profile|presentation|présentation/.test(n)) { category = "presentation"; profile_key = "kortex"; }
+    else if (/portfolio/.test(n)) category = "portfolio";
+    else if (/certificat|idu|rccm|cepici/.test(n)) { category = "certificat"; profile_key = "kortex"; }
+    setF({ ...f, category, profile_key, language: en ? "en" : "fr", title: f.title || fl.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ") });
+  }
+
   async function upload() {
-    const file = fileRef.current?.files?.[0];
-    if (!file) return;
+    if (!file) { toast.error("Choisissez d'abord un fichier."); return; }
     const fd = new FormData();
     fd.append("file", file);
     Object.entries(f).forEach(([k, v]) => fd.append(k, k === "profile_key" && v === "common" ? "" : v));
@@ -28,6 +45,7 @@ export default function DocumentsPage() {
       if (!r.ok) throw new Error((await r.json()).detail);
     }, "Document ajouté");
     if (fileRef.current) fileRef.current.value = "";
+    setFile(null);
     setF({ ...f, title: "" });
     mutate();
   }
@@ -39,8 +57,17 @@ export default function DocumentsPage() {
       <PageHeader title="Bibliothèque documentaire" subtitle="CV, portfolio, plaquette, présentation, certificats. L'application recommande les pièces pertinentes ; vous validez chaque pièce jointe." />
       <Card className="mb-6">
         <CardHeader><CardTitle className="text-base">Importer un document</CardTitle></CardHeader>
-        <CardContent className="grid gap-2 md:grid-cols-[1fr_170px_110px_160px_1fr_auto]">
-          <Input ref={fileRef} type="file" accept=".pdf,.docx,.doc,.pptx,.jpg,.png,.txt,.md" />
+        <CardContent className="space-y-3">
+          <input ref={fileRef} type="file" className="hidden" accept=".pdf,.docx,.doc,.pptx,.jpg,.png,.txt,.md" onChange={(e) => pick(e.target.files?.[0])} />
+          <button type="button" onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
+            onDrop={(e) => { e.preventDefault(); setDrag(false); pick(e.dataTransfer.files?.[0]); }}
+            className={`flex w-full flex-col items-center gap-1 rounded-lg border-2 border-dashed p-6 text-sm transition-colors ${drag ? "border-foreground bg-muted" : "hover:bg-muted/60"}`}>
+            <FileUp className="size-6" />
+            {file ? <span className="font-medium">{file.name} <span className="font-normal text-muted-foreground">({(file.size / 1024).toFixed(0)} Ko) — cliquer pour changer</span></span>
+              : <><span className="font-medium">Cliquez pour choisir un fichier</span><span className="text-xs text-muted-foreground">ou glissez-le ici (PDF, DOCX…)</span></>}
+          </button>
+          <div className="grid gap-2 md:grid-cols-[170px_110px_160px_1fr_auto]">
           <Select value={f.category} onValueChange={(v) => setF({ ...f, category: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>{Object.entries(cats || {}).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
@@ -54,7 +81,8 @@ export default function DocumentsPage() {
             <SelectContent><SelectItem value="shalom">Shalom Tehe</SelectItem><SelectItem value="kortex">KORTEX DIGITAL</SelectItem><SelectItem value="common">Commun</SelectItem></SelectContent>
           </Select>
           <Input placeholder="Titre (facultatif)" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
-          <Button onClick={upload} disabled={busy === "up"}><Spin on={busy === "up"} /><Upload className="size-4" /> Ajouter</Button>
+          <Button onClick={upload} disabled={!file || busy === "up"}><Spin on={busy === "up"} /><Upload className="size-4" /> Ajouter</Button>
+          </div>
         </CardContent>
       </Card>
       <div className="grid gap-4 md:grid-cols-2">
