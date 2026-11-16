@@ -1,0 +1,59 @@
+name: kortex-prospect
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kortex
+      POSTGRES_PASSWORD: kortex
+      POSTGRES_DB: kortex_prospect
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kortex -d kortex_prospect"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  api:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://kortex:kortex@db:5432/kortex_prospect
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_DIR: /data/storage
+      ZOHO_REDIRECT_URI: http://localhost:3100/api/email/zoho/callback
+      PUBLIC_URL: http://localhost:3100
+    command: ["api"]
+    ports: ["8010:8000"]
+    volumes: [storage:/data/storage]
+    depends_on:
+      db: {condition: service_healthy}
+    profiles: [full]
+
+  worker:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://kortex:kortex@db:5432/kortex_prospect
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_DIR: /data/storage
+    command: ["worker"]
+    volumes: [storage:/data/storage]
+    depends_on: [db, redis]
+    profiles: [full]
+
+  web:
+    build: ./frontend
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    ports: ["3100:3000"]
+    depends_on: [api]
+    profiles: [full]
+
+volumes:
+  pgdata:
+  storage:

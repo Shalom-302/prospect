@@ -1,0 +1,142 @@
+# Compose de production pour Dokploy : récupère les images construites par GitHub Actions
+# (.github/workflows/build.yml) au lieu de builder sur le VPS. Même organisation que Foody.
+#
+#   API    : ghcr.io/shalom-302/prospect        (backend/)
+#   Web    : ghcr.io/shalom-302/prospect-web    (frontend/)
+#
+# Dans Dokploy :
+#   - domaine public prospect.kortex.sbs -> service `web`, port 3000 (HTTPS Let's Encrypt).
+#     L'API n'a pas de route publique : le navigateur appelle l'origine web, qui relaie /api/*
+#     vers http://prospect-api:8000 sur le réseau interne (cookie de session first-party).
+#   - renseigner les secrets dans l'onglet « Environment » (voir .env.example). En prod, l'API REFUSE
+#     de démarrer sans TOKEN_SECRET_KEY, SECRET_KEY, PUBLIC_DOMAIN et ADMIN_PHONES.
+#   - POSTGRES_PASSWORD : lettres et chiffres uniquement (il est inséré dans une URL).
+#   - Connexion : code WhatsApp envoyé par la passerelle gowa partagée (réseau whatsapp-shared-network),
+#     uniquement aux numéros listés dans ADMIN_PHONES.
+
+x-app-env: &app-env
+  ENVIRONMENT: prod
+  DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-prospect}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans Dokploy Environment}@prospect-postgres:5432/${POSTGRES_DB:-prospect}
+  REDIS_URL: redis://prospect-redis:6379/0
+  STORAGE_DIR: /data/storage
+  PUBLIC_URL: https://${PUBLIC_DOMAIN:?PUBLIC_DOMAIN manquant dans Dokploy Environment}
+  FRONTEND_ORIGIN: https://${PUBLIC_DOMAIN}
+  COOKIE_SECURE: "true"
+  # ⚠️ Obligatoires
+  TOKEN_SECRET_KEY: ${TOKEN_SECRET_KEY:?TOKEN_SECRET_KEY manquant dans Dokploy Environment}
+  SECRET_KEY: ${SECRET_KEY:?SECRET_KEY (clé Fernet) manquante dans Dokploy Environment}
+  ADMIN_PHONES: ${ADMIN_PHONES:?ADMIN_PHONES manquant (ex. 0712116258)}
+  # Connexion WhatsApp (gowa, même passerelle que Foody / SignalLab / shaapi)
+  GOWA_URL: ${GOWA_URL:-http://shalom-gowa:3080}
+  GOWA_BASIC_USER: ${GOWA_BASIC_USER:-}
+  GOWA_BASIC_PASS: ${GOWA_BASIC_PASS:-}
+  # IA et recherche
+  LLM_BASE_URL: ${LLM_BASE_URL:-https://api.deepseek.com/v1}
+  LLM_API_KEY: ${LLM_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-deepseek-chat}
+  TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+  # Envoi par lots (SMTP Zoho) + suivi des réponses (IMAP Zoho)
+  MAIL_USER: ${MAIL_USER:-}
+  MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+  SMTP_HOST: ${SMTP_HOST:-smtppro.zoho.com}
+  IMAP_HOST: ${IMAP_HOST:-imappro.zoho.com}
+  SENDER_EMAIL: ${SENDER_EMAIL:-contact@kortexdigital.net}
+  SENDER_NAME: ${SENDER_NAME:-Shalom Tehe - KORTEX DIGITAL}
+  CAMPAIGN_DAILY_MAX: ${CAMPAIGN_DAILY_MAX:-30}
+  CAMPAIGN_HOURS: ${CAMPAIGN_HOURS:-8-17}
+  # Brouillons Zoho (facultatif)
+  ZOHO_CLIENT_ID: ${ZOHO_CLIENT_ID:-}
+  ZOHO_CLIENT_SECRET: ${ZOHO_CLIENT_SECRET:-}
+  ZOHO_ACCOUNTS_DOMAIN: ${ZOHO_ACCOUNTS_DOMAIN:-https://accounts.zoho.com}
+  ZOHO_MAIL_DOMAIN: ${ZOHO_MAIL_DOMAIN:-https://mail.zoho.com}
+  ZOHO_REDIRECT_URI: https://${PUBLIC_DOMAIN}/api/email/zoho/callback
+
+services:
+  api:
+    image: ${PROSPECT_IMAGE:-ghcr.io/shalom-302/prospect}:latest
+    pull_policy: always  # :latest est mutable : toujours récupérer le dernier build CI
+    restart: unless-stopped
+    command: ["api"]  # alembic upgrade head puis uvicorn
+    environment: *app-env
+    volumes:
+      - storage:/data/storage
+    expose:
+      - "8000"
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    # Alias uniques : Dokploy rattache aussi les services au dokploy-network partagé,
+    # où un simple « api » pourrait désigner le conteneur d'un AUTRE projet (ex. Foody).
+    networks:
+      prospect:
+        aliases: [prospect-api]
+      whatsapp-shared-network: {}
+
+  worker:
+    image: ${PROSPECT_IMAGE:-ghcr.io/shalom-302/prospect}:latest
+    pull_policy: always
+    restart: unless-stopped
+    command: ["worker"]  # Celery + beat : recherches du matin, file d'envoi (1/min max), IMAP
+    environment: *app-env
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      api: {condition: service_started}
+      redis: {condition: service_healthy}
+    networks: [prospect]
+
+  web:
+    image: ${PROSPECT_IMAGE:-ghcr.io/shalom-302/prospect}-web:latest
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      - API_INTERNAL_URL=http://prospect-api:8000
+    expose:
+      - "3000"
+    depends_on:
+      - api
+    networks: [prospect]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-prospect}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans Dokploy Environment}
+      - POSTGRES_DB=${POSTGRES_DB:-prospect}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-prospect} -d ${POSTGRES_DB:-prospect}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      prospect:
+        aliases: [prospect-postgres]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      prospect:
+        aliases: [prospect-redis]
+
+volumes:
+  pgdata:
+  redisdata:
+  storage:
+
+networks:
+  prospect:
+  # Créé une fois sur le VPS (déjà présent : Foody / SignalLab l'utilisent) :
+  #   docker network create whatsapp-shared-network
+  whatsapp-shared-network:
+    external: true
