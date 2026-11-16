@@ -38,8 +38,8 @@ x-app-env: &app-env
   # Envoi par lots (SMTP Zoho) + suivi des réponses (IMAP Zoho)
   MAIL_USER: ${MAIL_USER:-}
   MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-  SMTP_HOST: ${SMTP_HOST:-smtppro.zoho.com}
-  IMAP_HOST: ${IMAP_HOST:-imappro.zoho.com}
+  SMTP_HOST: ${SMTP_HOST:-smtp.zoho.com}
+  IMAP_HOST: ${IMAP_HOST:-imap.zoho.com}
   SENDER_EMAIL: ${SENDER_EMAIL:-contact@kortexdigital.net}
   SENDER_NAME: ${SENDER_NAME:-Shalom Tehe - KORTEX DIGITAL}
   CAMPAIGN_DAILY_MAX: ${CAMPAIGN_DAILY_MAX:-30}

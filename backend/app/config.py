@@ -39,11 +39,11 @@ class Settings(BaseSettings):
     zoho_redirect_uri: str = "http://localhost:3100/api/email/zoho/callback"
 
     # Envoi par lots (SMTP Zoho) + suivi des réponses (IMAP Zoho)
-    # Compte avec domaine : smtppro.zoho.com / imappro.zoho.com (.eu selon la région).
+    # Vérifié sur le compte KORTEX : smtp.zoho.com / imap.zoho.com (smtppro refuse l'accès). .eu selon la région.
     # Mot de passe : « mot de passe d'application » Zoho si la double authentification est active.
-    smtp_host: str = "smtppro.zoho.com"
+    smtp_host: str = "smtp.zoho.com"
     smtp_port: int = 465
-    imap_host: str = "imappro.zoho.com"
+    imap_host: str = "imap.zoho.com"
     imap_port: int = 993
     mail_user: str = ""
     mail_password: str = ""

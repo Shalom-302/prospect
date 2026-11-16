@@ -50,7 +50,7 @@ export default function EmailPage() {
             <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
               <li>Zoho Mail › Paramètres › Comptes de messagerie : activez l&apos;accès <b>IMAP</b> (SMTP est inclus). L&apos;offre gratuite Zoho ne permet pas IMAP/SMTP : il faut une offre payante (Mail Lite ou plus).</li>
               <li>Si la double authentification est active : Zoho Accounts › Sécurité › <b>Mots de passe d&apos;application</b> › en créer un « KORTEX Prospect ».</li>
-              <li>Dans l&apos;environnement (Dokploy ou .env) : <code>MAIL_USER=contact@kortexdigital.net</code> et <code>MAIL_PASSWORD=&lt;mot de passe d&apos;application&gt;</code>. Serveurs par défaut : smtppro.zoho.com / imappro.zoho.com (remplacer .com par .eu si le compte est hébergé en Europe).</li>
+              <li>Dans l&apos;environnement (Dokploy ou .env) : <code>MAIL_USER=contact@kortexdigital.net</code> et <code>MAIL_PASSWORD=&lt;mot de passe d&apos;application&gt;</code>. Serveurs par défaut : smtp.zoho.com / imap.zoho.com (remplacer .com par .eu si le compte est hébergé en Europe).</li>
             </ol>
           ) : st && (
             <div className="grid gap-2 sm:grid-cols-2">
